@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Form from "@components/Form";
 
-const EditPrompt = () => {
+const EditPromptContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const promptId = searchParams?.get("id");
@@ -16,7 +16,7 @@ const EditPrompt = () => {
   });
 
   useEffect(() => {
-    if (!promptId) return; // Prevent running if no promptId
+    if (!promptId) return;
 
     const fetchPrompt = async () => {
       try {
@@ -24,12 +24,10 @@ const EditPrompt = () => {
         if (!response.ok) throw new Error("Failed to fetch prompt");
 
         const data = await response.json();
-        if (data) {
-          setPost({
-            prompt: data.prompt || "",
-            tag: data.tag || "",
-          });
-        }
+        setPost({
+          prompt: data.prompt || "",
+          tag: data.tag || "",
+        });
       } catch (error) {
         console.error("Error fetching prompt:", error);
       }
@@ -66,6 +64,8 @@ const EditPrompt = () => {
     }
   };
 
+  if (!promptId) return <p>Loading...</p>; // Prevent rendering if promptId is missing
+
   return (
     <Form
       type="Edit"
@@ -74,6 +74,14 @@ const EditPrompt = () => {
       submitting={submitting}
       handleSubmit={updatePrompt}
     />
+  );
+};
+
+const EditPrompt = () => {
+  return (
+    <Suspense fallback={<p>Loading prompt editor...</p>}>
+      <EditPromptContent />
+    </Suspense>
   );
 };
 
